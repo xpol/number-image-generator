@@ -1,1 +1,6 @@
-numbers
+/main
+/number-image-generator
+/numbers
+
+# include main source code
+!/main.go
