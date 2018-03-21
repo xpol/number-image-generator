@@ -87,12 +87,19 @@ func generateNumberImage(v int, t *template) image.Image {
 	return m
 }
 
+func ensureDirectory(path string) {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		os.Mkdir(path, os.ModePerm)
+	}
+}
+
 func main() {
 	t := loadImages()
-	_ = os.Mkdir("numbers", os.ModePerm)
+	const outputDirectory = "numbers"
+	ensureDirectory(outputDirectory)
 
 	for i := 1; i < 1000; i++ {
 		image := generateNumberImage(i, t)
-		savePng(fmt.Sprintf("numbers/%03d.png", i), image)
+		savePng(fmt.Sprintf("%s/%03d.png", outputDirectory, i), image)
 	}
 }
