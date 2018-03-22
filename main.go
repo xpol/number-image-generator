@@ -47,28 +47,34 @@ func savePng(filename string, img image.Image) {
 	check(png.Encode(f, img))
 }
 
-type template struct {
-	digits     []image.Image
-	background image.Image
+type theme struct {
+	digits      []image.Image
+	backgrounds []image.Image
 }
 
-func loadImages() *template {
-	r := template{
-		digits:     make([]image.Image, 10),
-		background: loadPng("template/background.png"),
+func loadTheme(themeName string) *theme {
+	r := theme{
+		digits:      make([]image.Image, 10),
+		backgrounds: make([]image.Image, 10),
 	}
+
 	for i := 0; i < 10; i++ {
-		r.digits[i] = loadPng(fmt.Sprintf("template/%d.png", i))
+		r.digits[i] = loadPng(fmt.Sprintf("themes/%s/digits/%d.png", themeName, i))
 	}
+
+	for i := 0; i < 10; i++ {
+		r.backgrounds[i] = loadPng(fmt.Sprintf("themes/%s/backgrounds/%d.png", themeName, i))
+	}
+
 	return &r
 }
 
-func generateNumberImage(v int, t *template) image.Image {
+func generateNumberImage(v int, t *theme) image.Image {
 	digits := toDigits(v)
 
 	n := len(digits)
 	dr := t.digits[8].Bounds()
-	ir := t.background.Bounds()
+	ir := t.backgrounds[0].Bounds()
 
 	p := image.Point{
 		X: (ir.Dx() - dr.Dx()*n) / 2,
@@ -76,7 +82,7 @@ func generateNumberImage(v int, t *template) image.Image {
 	}
 
 	m := image.NewRGBA(ir.Bounds())
-	draw.Draw(m, m.Bounds(), t.background, image.ZP, draw.Src)
+	draw.Draw(m, m.Bounds(), t.backgrounds[(v-1)/10%10], image.ZP, draw.Src)
 
 	for i := len(digits) - 1; i >= 0; i-- {
 		dst := image.Rectangle{Min: p, Max: p.Add(dr.Size())}
@@ -89,13 +95,17 @@ func generateNumberImage(v int, t *template) image.Image {
 
 func ensureDirectory(path string) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		os.Mkdir(path, os.ModePerm)
+		os.MkdirAll(path, os.ModePerm)
 	}
 }
 
 func main() {
-	t := loadImages()
-	const outputDirectory = "numbers"
+	themeName := "default"
+	if len(os.Args) >= 2 {
+		themeName = os.Args[1]
+	}
+	t := loadTheme(themeName)
+	outputDirectory := fmt.Sprintf("numbers/%s", themeName)
 	ensureDirectory(outputDirectory)
 
 	for i := 1; i < 1000; i++ {

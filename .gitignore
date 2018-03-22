@@ -1,6 +1,9 @@
 /main
 /number-image-generator
 /numbers
+/themes/*
+
 
 # include main source code
 !/main.go
+!/themes/default/
